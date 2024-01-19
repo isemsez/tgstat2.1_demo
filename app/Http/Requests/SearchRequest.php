@@ -11,6 +11,7 @@ class SearchRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'sourceElement' => 'required|in:searchQuery',
             'q' => 'required|string|max:191',  # search string
             'inAbout' => 'bool',
             'categories.*' => ['required', 'string', 'distinct', Rule::in(

@@ -9,8 +9,14 @@ use Exception;
 
 class Data
 {
+    /**
+     * @var string[]
+     */
+    private static array $time_arr_keys = ['y' =>'г.', 'm' =>'мес.', 'd' =>'дн.', 'h' =>'ч.', 'i' =>'мин.', 's' =>'с.'];
+
+
     public const SLUGS = [
-        'categories' => ['blogs', "Блоги", 'news', "Новости и СМИ", 'entertainment', "Юмор и развлечения", 'tech', "Технологии", 'economics', "Экономика", 'business', "Бизнес и стартапы", 'crypto', "Криптовалюты", 'travels', "Путешествия", 'marketing', "Маркетинг, PR, реклама", 'psychology', "Психология", 'design', "Дизайн", 'politics', "Политика", 'art', "Искусство", 'law', "Право", 'education', "Образование", 'books', "Книги", 'language', "Лингвистика", 'career', "Карьера", 'edutainment', "Познавательное", 'courses', "Курсы и гайды", 'sport', "Спорт", 'beauty', "Мода и красота", 'medicine', "Медицина", 'health', "Здоровье и Фитнес", 'pics', "Картинки и фото", 'apps', "Софт и приложения", 'video', "Видео и фильмы", 'music', "Музыка", 'games', "Игры", 'food', "Еда и кулинария", 'quotes', "Цитаты", 'handmade', "Рукоделие", 'babies', "Семья и дети", 'nature', "Природа", 'construction', "Интерьер и строительство", 'telegram', "Telegram", 'instagram', "Инстаграм", 'sales', "Продажи", 'transport', "Транспорт", 'religion', "Религия", 'esoterics', "Эзотерика", 'darknet', "Даркнет", 'gambling', "Букмекерство", 'shock', "Шок-контент", 'erotica', "Эротика", 'adult', "Для взрослых", 'other', "Другое"],
+        'categories' => ['blogs', "Блоги", 'news', "Новости и СМИ", 'entertainment', "Юмор и развлечения", 'tech', "Технологии", 'economics', "Экономика", 'business', "Бизнес и стартапы", 'crypto', "Криптовалюты", 'travels', "Путешествия", 'marketing', "Маркетинг, PR, реклама", 'psychology', "Психология", 'design', "Дизайн", 'politics', "Политика", 'art', "Искусство", 'law', "Право", 'education', "Образование", 'books', "Книги", 'language', "Лингвистика", 'career', "Карьера", 'edutainment', "Познавательное", 'courses', "Курсы и гайды", 'sport', "Спорт", 'beauty', "Мода и красота", 'medicine', "Медицина", 'health', "Здоровье и Фитнес", 'pics', "Картинки и фото", 'apps', "Софт и приложения", 'video', "Видео и фильмы", 'music', "Музыка", 'games', "Игры", 'food', "Еда и кулинария", 'quotes', "Цитаты", 'handmade', "Рукоделие", 'babies', "Семья и дети", 'nature', "Природа", 'construction', "Интерьер и строительство", 'telegram', "Телеграм", 'instagram', "Инстаграм", 'sales', "Продажи", 'transport', "Транспорт", 'religion', "Религия", 'esoterics', "Эзотерика", 'darknet', "Даркнет", 'gambling', "Букмекерство", 'shock', "Шок-контент", 'erotica', "Эротика", 'adult', "Для взрослых", 'other', "Другое"],
 
         'regions' => ['altai-region', 'Алтайский край', 'amur-region', 'Амурская область', 'arkhangelsk-region', 'Архангельская область', 'astrakhan-region', 'Астраханская область', 'belgorod-region', 'Белгородская область', 'bryansk-region', 'Брянская область', 'vladimir-region', 'Владимирская область', 'volgograd-region', 'Волгоградская область', 'vologda-region', 'Вологодская область', 'voronezh-region', 'Воронежская область', 'eao-region', 'Еврейская автономная область', 'zabaikal-region', 'Забайкальский край', 'ivanovo-region', 'Ивановская область', 'irkutsk-region', 'Иркутская область', 'kbr-region', 'Кабардино-Балкарская Республика', 'kaliningrad-region', 'Калининградская область', 'kaluga-region', 'Калужская область', 'kamchatka-region', 'Камчатский край', 'kchr-region', 'Карачаево-Черкесская республика', 'kemerovo-region', 'Кемеровская область', 'kirov-region', 'Кировская область', 'kostroma-region', 'Костромская область', 'krasnodar-region', 'Краснодарский край', 'krasnoyarsk-region', 'Красноярский край', 'kurgan-region', 'Курганская область', 'kursk-region', 'Курская область', 'lipetsk-region', 'Липецкая область', 'magadan-region', 'Магаданская область', 'moscow', 'Москва', 'moscow-region', 'Московская область', 'murmansk-region', 'Мурманская область', 'nao-region', 'Ненецкий автономный округ', 'nn-region', 'Нижегородская область', 'novgorod-region', 'Новгородская область', 'novosibirsk-region', 'Новосибирская область', 'omsk-region', 'Омская область', 'orenburg-region', 'Оренбургская область', 'orlov-region', 'Орловская область', 'penza-region', 'Пензенская область', 'perm-region', 'Пермский край', 'primorsk-region', 'Приморский край', 'pskov-region', 'Псковская область', 'adigea-region', 'Республика Адыгея', 'altai', 'Республика Алтай', 'bashkiria-region', 'Республика Башкортостан', 'buratia-region', 'Республика Бурятия', 'dagestan-region', 'Республика Дагестан', 'ingushetia-region', 'Республика Ингушетия', 'kalmikia-region', 'Республика Калмыкия', 'karelia-region', 'Республика Карелия', 'komi-region', 'Республика Коми', 'crimea', 'Республика Крым', 'maryel-region', 'Республика Марий Эл', 'mordovia-region', 'Республика Мордовия', 'yakutia-region', 'Республика Саха (Якутия)', 'alania-region', 'Республика Северная Осетия - Алания', 'tatarstan-region', 'Республика Татарстан', 'tiva-region', 'Республика Тыва', 'hakasia-region', 'Республика Хакасия', 'rostov-region', 'Ростовская область', 'ryazan-region', 'Рязанская область', 'samara-region', 'Самарская область', 'spb', 'Санкт-Петербург', 'saratov-region', 'Саратовская область', 'sakhalin-region', 'Сахалинская область', 'ekb-region', 'Свердловская область', 'smolensk-region', 'Смоленская область', 'stavropol-region', 'Ставропольский край', 'tambov-region', 'Тамбовская область', 'tver-region', 'Тверская область', 'tomsk-region', 'Томская область', 'tula-region', 'Тульская область', 'tyumen-region', 'Тюменская область', 'udmurtia-region', 'Удмуртская Республика', 'ulyanovsk-region', 'Ульяновская область', 'khabarovsk-region', 'Хабаровский край', 'hmao-region', 'Ханты-Мансийский автономный округ - Югра', 'chel-region', 'Челябинская область', 'chechnya-region', 'Чеченская Республика', 'chuvashia-region', 'Чувашская Республика', 'chukotka-region', 'Чукотский автономный округ', 'yamal-region', 'Ямало-Ненецкий автономный округ', 'yaroslavl-region', 'Ярославская область'],
 
@@ -20,6 +26,11 @@ class Data
 
         'other' => ['popular', 'Популярные каналы'],
     ];
+
+
+    public const AMOUNT_ON_REGION_PAGE = 102;
+
+    public const AMOUNT_ON_SEARCH_PAGE = 30;
 
 
     /**
@@ -100,21 +111,58 @@ class Data
     }
 
     /**
-     * @param array $channels
-     * @return array
-     * @throws Exception
+     *How much time ago the last post was published.
+     *
+     * @param $last_post_date
+     * @return string
      */
-    public static function prepare_for_dropdown(array $channels): array
+    public static function post_since_str($last_post_date): string
     {
-        $tmp = array_column($channels, 'category');
-        $by_category = array_count_values($tmp);
-        arsort($by_category);
+        $time_since_post = date_diff(
+            date_create(), # ->sub(new \DateInterval('P60DT16H30M')),
+            date_create($last_post_date)
+        );
+        $non_empty_count = 0;
+        foreach (self::$time_arr_keys as $time_arr_key => $time_description) {
+            $time_field_value = $time_since_post->$time_arr_key;
 
-        foreach ($by_category as $category => &$count) {
-            $count = Data::friendly_name($category) . ' [' . $count . ']';
+            if ($time_field_value == 0) {
+                if ($non_empty_count == 1) {
+                    break;     # if second empty after first non-empty
+                } else {
+                    continue;  # skip leading zeros (empty)
+                }
+            }
+            $ago_str = self::prettify_ago_str($time_field_value . ' ' . $time_description);
+
+            $non_empty_count++;
+            if ($non_empty_count == 2 or $time_field_value > 1) {
+                break;   # stop before excessive information
+            }
         }
-        return $by_category;
+        return $ago_str;
     }
+
+    /**
+     *Make simpler when pair of data.
+     *
+     * @param string $ago_str
+     * @return string
+     */
+    private static function prettify_ago_str(string $ago_str): string
+    {
+        if (substr_count($ago_str, '.') == 2) {
+            $tmp = explode(
+                '.',
+                str_replace(' ', '', $ago_str),
+                2
+            );
+            $tmp[1] = str_replace(['мес', 'дн', 'мин', 'сек'], ['м', 'д', 'м', 'с'], $tmp[1]);
+            $ago_str = implode('. ', $tmp);
+        }
+        return $ago_str;
+    }
+
 
 
 }

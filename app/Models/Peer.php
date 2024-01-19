@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Collection;
+use App\Services\Data;
+use App\Services\PrepareData;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use MongoDB\Laravel\Eloquent\Model;
 
 class Peer extends Model
@@ -19,9 +21,9 @@ class Peer extends Model
 
     /**
      * @param int $how_many
-     * @return Collection
+     * @return EloquentCollection
      */
-    public function popular_channels(int $how_many): Collection
+    public function popular_channels(int $how_many): EloquentCollection
     {
         return $this->query()
             ->where('alias', 'like', '@%')
@@ -33,9 +35,9 @@ class Peer extends Model
      * Combined query for given category's top channels.
      *
      * @param int $how_many
-     * @return Collection
+     * @return EloquentCollection
      */
-    public function popular_categories(int $how_many): Collection
+    public function popular_categories(int $how_many): EloquentCollection
     {
         return $this->raw(function ($collection) use ($how_many) {
             return $collection->aggregate([
@@ -53,7 +55,7 @@ class Peer extends Model
      * @param int $how_many
      * @return array
      */
-    public function top_by_categories(array $categories_arr, int $how_many): array
+    public function top_by_categories(int $how_many, array $categories_arr): array
     {
         $categories_bson = $this->raw( function ($collection) use ($categories_arr, $how_many) {
             return $collection->aggregate([
@@ -90,9 +92,9 @@ class Peer extends Model
      *
      * @param string $category
      * @param int $how_many
-     * @return Collection
+     * @return EloquentCollection
      */
-    public function top_in_category(string $category, int $how_many): Collection
+    public function top_in_category(string $category, int $how_many): EloquentCollection
     {
         return $this->raw( function ($collection) use ($category, $how_many) {
             return $collection->aggregate([
@@ -110,75 +112,134 @@ class Peer extends Model
      * @param string $channel_id
      * @return Peer[]
      */
-    public function one_channel_data(string $channel_id)
+    public function one_channel_data(string $channel_id): array
     {
         return $this->whereIn('alias', ['@'.$channel_id, $channel_id])
-            ->get(['alias','category','description','name','region','subscribers']);
+            ->get(['alias','category','description','name','region','subscribers'])
+            ->toArray();
     }
 
     /**
      * Returns data for page to choose a region.
      *
-     * @return Collection
+     * @return EloquentCollection
      */
-    public function regions(): Collection
+    public function regions(): EloquentCollection
     {
         return $this->raw( function ($collection) {
             return $collection->aggregate([
-                ['$match' => ['region' => ['$regex'=>'[a-z]']]],
+                ['$match' => ['$and' => [
+                    ['region' => ['$exists' => true] ],
+                    ['region' => ['$nin'    => [null, ''] ]]
+                ]]],
                 ['$group' => [
                     '_id'   => '$region',
-                    'total' => ['$sum' => 1]]
-                ],
+                    'total' => ['$sum' => 1]
+                ]],
             ]);
         });
     }
 
     /**
-     * Returns data for page to choose a region.
+     * Returns data for the page to choose a region.
      *
      * @param string $region
-     * @return Collection
+     * @return EloquentCollection
      */
-    public function region_channels(string $region): Collection
+    public function region_channels(string $region): EloquentCollection
     {
-        return $this->query()
-            ->where('region', $region)
-            ->latest('subscribers')->take(102)
+        $category = request()->post('categoryId');
+        $page_offset = request()->post('page');
+        $peer = request()->post('peer');
+        $sort_by = request()->post('sort', 'subscribers');
+
+        $query = $this->query()->where('region', $region );
+
+        $query = $category     ? $query->where('category', $category)    : $query;
+        $query = $page_offset  ? $query->skip($page_offset * Data::AMOUNT_ON_REGION_PAGE)  : $query;
+
+        return $query->latest($sort_by)->oldest('alias')->take(Data::AMOUNT_ON_REGION_PAGE)
             ->get(['alias','category','name','description','last_post_date','subscribers']);
     }
 
     /**
-     * Search for channel by given string.
+     * Return data for dropdown menu to choose category.
+     *
+     * @param string|null $region
+     * @return mixed
+     */
+    public function categories_dropdown(?string $region): EloquentCollection
+    {
+        $pipeline = [
+            ['$match' => ['_id' => ['$exists'=>true]]],
+            ['$group' => ['_id' => '$category']],
+            ['$sort'  => ['count' => -1]]
+        ];
+        if ( $region ) {
+            $pipeline[0]['$match'] = ['region' => $region];
+            $pipeline[1]['$group']['count'] = ['$sum' => 1];
+        }
+
+        return $this->raw(function ($collection) use ($pipeline) {
+            return $collection->aggregate($pipeline);
+        });
+    }
+
+    /**
+     * Return amount of peers for the region.
+     *
+     * @param string $region
+     * @return mixed
+     */
+    public function region_peer_count(string $region): int
+    {
+        return $this->query()->where('region', $region)->count();
+    }
+
+    /**
+     * Search for channels by given string.
      *
      * @param array $validated
      * @param int $how_many
-     * @return Collection
+     * @return array
      */
-    public function search(array $validated, int $how_many): Collection
+    public function search(array $validated, int $how_many): array
     {
         $query = function ($collection) use ($validated, $how_many) {
-            $search_str = ['$regex'   => $validated['q'],
-                           '$options' => 'i'];
+            $search_str = ['$regex' => $validated['q'], '$options' => 'i'];  # case insensitive
 
-            $str_search_arr = [['alias' => $search_str], ['name' => $search_str]];
-            if ( !empty($validated['inAbout'])) {
-                ($str_search_arr[] = ['description' => $search_str]);
-            }
-
-            $match_and_arr = [['$or' => $str_search_arr]];
-            if ( !empty( $validated['categories'])) {
-                ($match_and_arr[] = ['category' => ['$in' => $validated['categories']]]);
-            }
+            $match_arr =
+                ['$and' => [
+                    ['$or' => [
+                        ['alias' => $search_str],
+                        ['name' => $search_str],
+                        ['description' => $search_str]]],
+                    ['category' => ['$in' => $validated['categories'] ?? null]],
+                ]];
+            if ( empty($validated['inAbout']) )     unset( $match_arr['$and'][0]['$or'][2] );
+            if ( empty($validated['categories']))   unset( $match_arr['$and'][1] );
 
             return $collection->aggregate([
-                ['$match' => ['$and' => $match_and_arr]],
+                ['$match' => $match_arr],
                 ['$sort' => ['subscribers' => -1]],
+                ['$project' => ['_id'=>0, 'chat_id'=>0, 'region'=>0, 'status'=>0]],
+                ['$facet'=>[
+                    'docs'=>[
+//                        ['$skip'=>$pages],
+                        ['$limit'=>$how_many],
+                    ],
+                    'total'=>[['$count'=>'count']]
+                ]],
                 ['$limit' => $how_many],
             ]);
         };
+        $tmp = $this->raw($query)[0];
+        $total_channels_found = $tmp['total'][0]['count'];
 
-        return $this->raw($query);
+        return [
+            PrepareData::convertMongoResultToArray($tmp['docs']),
+            $total_channels_found
+        ];
     }
 
     /**

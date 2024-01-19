@@ -1,9 +1,8 @@
 <?php
 
 use App\Http\Controllers\CatalogController;
-use App\Http\Controllers\OneChannel;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
+use App\Http\Controllers\OneChannel;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -17,8 +16,23 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
-/*
-Route::get('/', function () {
+
+
+Route::get('/', [CatalogController::class, 'main_page']);
+Route::get('/categ/{id}', [CatalogController::class, 'category_page'])->name('category_page');
+Route::get('/regions', [CatalogController::class, 'regions_page']);
+Route::get('/regions/{region}', [CatalogController::class, 'one_region_page']);
+
+Route::get('/channel/{id}', [OneChannel::class, 'channel_page']);
+
+Route::get('/search', [CatalogController::class, 'search_page']);
+
+Route::get('/add/channel', [OneChannel::class, 'add_channel']);
+
+Route::get('/ratings/channels', [CatalogController::class, 'ratings_page']);
+Route::get('/ratings/channels/{category}', [CatalogController::class, 'ratings_page']);
+
+/*Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -26,25 +40,6 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });*/
-
-
-Route::get('/', [CatalogController::class, 'main_page']);
-Route::get('/categ/{id}', [CatalogController::class, 'category_page']);
-Route::get('/regions', [CatalogController::class, 'regions_page']);
-Route::get('/regions/{region}', [CatalogController::class, 'one_region_page']);
-
-Route::get('/channel/{id}', [OneChannel::class, 'channel_page']);
-
-Route::get('/search', [OneChannel::class, 'search_page']);
-Route::post('/search', [OneChannel::class, 'search_page']);
-
-Route::get('/add/channel', [OneChannel::class, 'add_channel']);
-Route::post('/add/channel', [OneChannel::class, 'add_channel']);
-
-Route::get('/ratings/channels', [CatalogController::class, 'ratings_page']);
-Route::get('/ratings/channels/{category}', [CatalogController::class, 'ratings_page']);
-
-
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

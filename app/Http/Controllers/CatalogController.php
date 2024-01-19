@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Peer;
 use App\Services\ChannelCard;
 use App\Services\Data;
+use App\Services\PrepareData;
 use Exception;
-use Illuminate\Contracts\View\View;
 use Inertia\Response;
 
 class CatalogController extends Controller
@@ -21,45 +21,39 @@ class CatalogController extends Controller
      */
     public function main_page(Peer $model): Response
     {
-        $many = 3*4; # number of channels in card
+        $many = 3*4; # number of channels in channels card
 
-        $popular_channels = ChannelCard::prepare_for_card(
-            $model->popular_channels($many),
-            to_split: 4
-        );
-        $popular_title = 'popular';
+        ### popular channels
+        $db_channels = $model->popular_channels($many);
+        $popular_channels = PrepareData::channels_container($db_channels, to_split: 4);
 
-/*     # categories
-        $db_data_categ = $model->popular_categories( how_many: 8*4);
-        foreach ($db_data_categ as $category_str) {
-            $category_str['count'] = Data::kilo_style($category_str['count']);
-            $category_str['friendly_name'] = Data::friendly_name($category_str['_id']);
-        }
-        $all_categories = collect($db_data_categ)->split(4);
+     ### categories
+        $db_categories = $model->popular_categories( 12*4 );
+        $all_categories = PrepareData::categories_card($db_categories);
 
-     # popular channels in each given category
-        $data_by_categ = $model->top_by_categories(
-            ['blogs', 'news', 'travels', 'politics', 'economics', 'education'], $many
-        );*/
+     ### popular channels in each given category
+        $db_by_categ = $model->top_by_categories($many,
+            ['blogs', 'news', 'travels', 'politics', 'economics', 'education']);
+        $top_by_category = ChannelCard::prepare_by_category($db_by_categ, to_split: 4);
+
 
         return inertia('MainPage', [
-                'popular' => ['title'            => $popular_title,
-                              'friendly_title'   => Data::friendly_name($popular_title),
-                              'grouped_channels' => $popular_channels],
-//                'categories'          => $all_categories,
-//                'specific_categories' => ChannelCard::prepare_by_category($data_by_categ, to_split: 4),
+                'popular_channels'    => $popular_channels,
+                'categories'          => $all_categories,
+                'top_by_category' => $top_by_category,
             ]
         );
     }
 
     /**
-     * Return a page for certain category.
+     * Return top channels page for certain category.
      *
      * @param Peer $model
      * @param string $category_str
-     * @return View
+     * @return Response
+     * @throws Exception
      */
-    public function category_page(Peer $model, string $category_str): View
+    public function category_page(Peer $model, string $category_str): Response
     {
         $db_channels = $model->top_in_category($category_str, how_many: 102);
 
@@ -67,74 +61,87 @@ class CatalogController extends Controller
             $channels[] = ChannelCard::prepare_channel($channel);
         }
 
-        return view('pages.category', [
-            'main_header' => $category_str,
-            'channels'    => $channels,
-        ]);
+        ### categories
+        $db_categories = $model->popular_categories( 12*4 );
+        $all_categories = PrepareData::categories_card($db_categories);
+
+        return inertia('CategoryPage', ['data' => [
+            'slug'          => $category_str,
+            'friendly_title' => Data::friendly_name($category_str),
+            'channels'       => $channels,
+            'categories'     => $all_categories,
+        ]]);
     }
 
     /**
      * Returns page to choose a region.
      *
      * @param Peer $model
-     * @return View
+     * @return Response
      * @throws Exception
      */
-    public function regions_page(Peer $model): View
+    public function regions_page(Peer $model): Response
     {
-        $regions = $model->regions();
+        $db_regions = $model->regions();
 
-        foreach ($regions as $region) {
-            $friendly_title = Data::friendly_name($region['_id']);
-            $temp_arr[] = str_replace('Республика ', '', $friendly_title);
-            $region['translated'] = $friendly_title;
-            $new_regions[] = $region->toArray();
+        foreach ($db_regions as $region) {
+            $friendly_name = Data::friendly_name($region['_id']);
+            $sorting_arr[] = str_replace('Республика ', '', $friendly_name);
+            $region['friendly_title'] = $friendly_name;
+            $regions[] = $region->toArray();
         }
-        array_multisort($temp_arr, SORT_ASC, SORT_STRING, $new_regions);
+        array_multisort($sorting_arr, SORT_ASC, SORT_STRING, $regions);
 
-        return view('pages.regions', [
-            'regions' => $new_regions,
+        return inertia('RegionsPage', [
+            'regions' => $regions,
         ]);
     }
 
     /**
-     * Returns page with channels of the region.
+     * Returns page with channels of the region (also filtered by category).
      *
      * @param string $region
      * @param Peer $model
-     * @return View
+     * @return Response
      * @throws Exception
      */
-    public function one_region_page(string $region, Peer $model): View
+    public function one_region_page(string $region, Peer $model): Response
     {
-        $main_header = Data::friendly_name($region);
-        $db_channels = $model->region_channels($region);
+        $db_channels = $model->region_channels($region );
+        $channels = PrepareData::region_channels($db_channels);
 
-        foreach ($db_channels as $channel) {
-            $channels[] = ChannelCard::prepare_channel($channel);
-        }
+        return inertia('RegionPage', [
+            'region'              => ['slug'           => $region,
+                                      'friendly_title' => Data::friendly_name($region),
+                                      'channels'       => $channels,],
+        ]);
+    }
 
-        $by_category = Data::prepare_for_dropdown($channels);
-
-        return view('pages.region',
-            compact('main_header', 'channels', 'by_category')
-        );
+    /**
+     * Returns page to search a channel.
+     *
+     * @return Response
+     */
+    public function search_page(): Response
+    {
+        return inertia('SearchPage', ['status'=>'ok']);
     }
 
     /**
      * Return ratings page.
      *
-     * @param string|null $category
      * @param Peer $model
-     * @return View
+     * @param string|null $category
+     * @return Response
+     * @throws Exception
      */
-    public function ratings_page(Peer $model, string|null $category=null)
+    public function ratings_page(Peer $model, string|null $category=null): Response
     {
         if ( empty($category) ) {
             $channels = $model->popular_channels(self::RATINGS_COUNT);
 
         } else {
-            $channels = $model->top_by_categories([$category], self::RATINGS_COUNT)[$category];
+            $channels = $model->top_by_categories(self::RATINGS_COUNT, [$category] )[$category];
             foreach ($channels as &$channel) {
                 $channel['category'] = $category;
             }
@@ -142,7 +149,7 @@ class CatalogController extends Controller
 
         $channels = ChannelCard::prepare_for_card($channels);
 
-        return view('pages.ratings', [
+        return inertia('pages.ratings', [
                 'main_header' => 'Рейтинг Telegram-каналов',
                 'channels'   => $channels,
             ]
@@ -150,5 +157,3 @@ class CatalogController extends Controller
     }
 
 }
-
-

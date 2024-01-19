@@ -1,13 +1,17 @@
 <script type="application/javascript">
 import FlagsComponent from './Components/Flags.vue'
 import ChannelsCard from './Components/ChannelsCard.vue'
+import OneThirdCard from './Components/OneThirdCard.vue'
+import ChooseCategoryCard from './Components/ChooseCategoryCard.vue'
 import {Head} from "@inertiajs/vue3";
 
 export default {
     name: 'MainPage',
-    components: {Head, FlagsComponent, ChannelsCard},
+    components: {Head, FlagsComponent, ChannelsCard, ChooseCategoryCard, OneThirdCard},
     props: {
-        popular: Object,
+        popular_channels: Object,
+        categories: Array,
+        top_by_category: Object,
     }
 }
 </script>
@@ -16,37 +20,44 @@ export default {
 
 <template>
 
-    <Head title="Welcome"/>
+    <Head title="Телеграм каналы" />
 
-    <div class="text-center mb-2">
+    <h1 class="text-dark mt-4 text-center">
+        Каталог Telegram-каналов и чатов</h1>
+
     <FlagsComponent />
-  </div>
 
-  <div class="mb-3 position-relative">
+    <div class="mb-3 position-relative">
 
-      <ChannelsCard :popular="popular" />
+        <ChannelsCard :grouped_channels="popular_channels" friendly_title="Самые популярные" />
 
-<!--    @include('components.choose_category_card', ['categories' => $categories])-->
+        <ChooseCategoryCard :categories="categories" friendly_title="Все категории" />
 
-<!--    @include('components.channels_card', ['grouped_channels' => $specific_categories['blogs'], 'title' => 'blogs'])-->
+        <ChannelsCard :grouped_channels="top_by_category['blogs']['grouped_channels']" title="blogs" :friendly_title="top_by_category['blogs']['friendly_title']" />
 
-<!--    @include('components.channels_card', ['grouped_channels' => $specific_categories['news'], 'title' => 'news'])-->
+        <ChannelsCard :grouped_channels="top_by_category['news']['grouped_channels']" title="news" :friendly_title="top_by_category['news']['friendly_title']" />
 
-    <div class="row">
-      <div class="col-12 px-0 d-flex justify-content-between">
+        <div class="row">
+            <div class="col-12 px-0 d-flex justify-content-between">
 
-<!--        @include('components.one_third_card', ['channels_column' => $specific_categories['politics'][0], 'title' => 'politics'])-->
+                <OneThirdCard title="politics"
+                              :friendly_title="top_by_category['politics']['friendly_title']"
+                              :channels_column="top_by_category['politics']['grouped_channels'][0]"/>
 
-<!--        @include('components.one_third_card', ['channels_column' => $specific_categories['economics'][0], 'title' => 'economics'])-->
+                <OneThirdCard title="economics"
+                              :friendly_title="top_by_category['economics']['friendly_title']"
+                              :channels_column="top_by_category['economics']['grouped_channels'][0]"/>
 
-<!--        @include('components.one_third_card', ['channels_column' => $specific_categories['education'][0], 'title' => 'education'])-->
+                <OneThirdCard title="education"
+                              :friendly_title="top_by_category['education']['friendly_title']"
+                              :channels_column="top_by_category['education']['grouped_channels'][0]"/>
 
-      </div>
+            </div>
+        </div>
+
+        <ChannelsCard :grouped_channels="top_by_category['travels']['grouped_channels']" title="travels" :friendly_title="top_by_category['travels']['friendly_title']" />
+
     </div>
-
-<!--    @include('components.channels_card', ['grouped_channels' => $specific_categories['travels'], 'title' => 'travels'])-->
-
-  </div>
 
 </template>
 

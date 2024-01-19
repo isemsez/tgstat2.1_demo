@@ -9,29 +9,30 @@ use App\Services\ChannelCard;
 use App\Services\Data;
 use Exception;
 use Illuminate\Contracts\View\View;
+use Inertia\Response;
 
 class OneChannel extends Controller
 {
 
     /**
-     * Return the specified channel page (local).
+     * Return the specified channel page (local link).
      *
      * @param Peer $model
      * @param string $channel_id
-     * @return View
+     * @return Response
      * @throws Exception
      */
-    public function channel_page(Peer $model, string $channel_id): View
+    public function channel_page(Peer $model, string $channel_id): Response
     {
-        $channel = $model->one_channel_data($channel_id)[0];
+        $channel = ChannelCard::prepare_channel(
+            $model->one_channel_data($channel_id)[0]
+        );
 
         $is_public = str_starts_with($channel['alias'], '@');
         $channel['btn_text'] = $is_public ? $channel['alias'] : 'приватный канал';
         $channel['btn_hyperlink'] = ChannelCard::channel_url($channel['alias'], 'hyper');
-        $channel['subscribers'] = number_format($channel['subscribers'], thousands_separator: ' ');
-        $channel['avatar'] = ChannelCard::ava_url_path($channel['alias']);
 
-        return view('pages.channel', ['channel' => $channel]);
+        return inertia('ChannelPage', ['channel' => $channel]);
     }
 
     /**

@@ -9,21 +9,19 @@ export default {
 
 <template>
 
-    <a class="no-underline" :href="'/channel/'+channel['alias']" target="_blank">
-        <div class="row my-0 py-1 bg-dragula-hover rounded" style="flex-wrap: nowrap">
 
-            <div class="mx-1 mr-2 px-0" style="width:60px!important;">
-                <img :src="channel['img']" class="img-thumbnail rounded"
-                     style="width:50px;height:50px;background-blend-mode:normal!important;background-clip:content-box!important;background-position:50% 50%!important;background-color:rgb(255,255,255)!important;background-size:100% 100%!important;background-origin:content-box!important;background-repeat:no-repeat!important"
-                     alt="pic"></div>
+    <a :href="'/channel/'+channel['alias']" target="_blank">
+        <div class="row my-0 py-1 bg-dragula-hover rounded">
 
-            <div class="col-auto d-flex flex-column justify-content-around pl-0">
-                <div class="d-inline-block text-truncate text-dark-emphasis" style="max-width: 200px;">
-                    {{ channel['name'] }}          </div>
-                <div class="text-truncate text-muted mt-n1" style="font-size: small">
-                    {{ channel['subscribers'] }} подписчиков
-                </div>
+            <div class="mx-1 mr-2">
+                <img :src="channel['img']" class="img-thumbnail rounded" style="width:50px; height:50px;">     </div>
+            <div class="col d-flex flex-column justify-content-around pl-0">
+                <div class="text-truncate font-16 text-dark" style="max-width: 250px;">
+                    {{ channel['name'] }}                                                 </div>
+                <div class="text-truncate font-12 text-muted mt-n1">
+                    {{ channel['subscribers'] }} подписчиков                              </div>
             </div>
+
         </div>
     </a>
 

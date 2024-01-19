@@ -11,41 +11,44 @@ use Illuminate\Support\Collection as CollectionSupport;
 class ChannelCard
 {
     /**
-     * @var string[]
-     */
-    private static array $time_arr_keys = ['y' =>'г.', 'm' =>'мес.', 'd' =>'дн.', 'h' =>'ч.', 'i' =>'мин.', 's' =>'с.'];
-
-
-    /**
      * @param string $alias
      * @return string
      */
     public static function ava_url_path(string $alias): string
     {
-        $local_public_dir = 'c:/OSPanel/domains/tginfo/public';
-        $extensions = ['.jpg', '.svg', '.png'];
-        $ava_path = '/images/avatars/exploitex.jpg';
+        $site_name = config('app.name');
+        $locally_public_dir = "c:/OSPanel/domains/$site_name/public";
+        $extensions = ['.jpg', '.svg'];
+
         foreach ($extensions as $ext) {
             $url_path = '/images/avatars/' . ltrim($alias, '@') . $ext;
-            if ( file_exists($local_public_dir . $url_path) ) {
-                $ava_path = $url_path;
-                break;
+
+            $locally_ava_path = $locally_public_dir . $url_path;
+            if ( file_exists($locally_ava_path) ) {
+                return $url_path;
+            }
+            # circumventing avatars dir problem (too many files, ViteJS hangs, moving necessary files from external dir)
+            $external_dir_img = "c:/OSPanel/domains/localhost/avatars/" . ltrim($alias, '@') . $ext;
+            if ( file_exists($external_dir_img) ) {
+                rename($external_dir_img, $locally_ava_path);
+                return $url_path;
             }
         }
-        return $ava_path;
+        return '/images/avatars/exploitex.jpg'; # replacer avatar
     }
 
     /**
-     * Process raw db data for popular channels card container.
+     * Process incoming raw db data for popular channels card container.
      *
      * @param CollectionEloquent|array $channels
      * @param int $to_split
      * @return CollectionSupport
+     * @throws Exception
      */
     public static function prepare_for_card(CollectionEloquent|array $channels, int $to_split = 0): CollectionSupport
     {
         foreach ($channels as $channel) {
-            $output_channels[] = static::prepare_channel($channel);
+            $output_channels[] = self::prepare_channel($channel);
         }
         $output_channels = collect($output_channels);
 
@@ -53,21 +56,27 @@ class ChannelCard
     }
 
     /**
-     * Process raw db data for each category card container.
+     * Process raw db data for each category to fill channels card container.
      *
      * @param array $categories
      * @param int $to_split
      * @return array
+     * @throws Exception
      */
     public static function prepare_by_category(array $categories, int $to_split=0): array
     {
-        foreach ($categories as &$category) {
-            foreach ($category as &$channel) {
-                $channel = ChannelCard::prepare_channel($channel);
+        foreach ($categories as $key => $categ_channels) {
+            $categ_channels_out = [];
+            foreach ($categ_channels as $channel) {
+                $categ_channels_out[] = self::prepare_channel($channel);
             }
-            $category = static::to_split(collect($category), $to_split);
+            $categories_out[$key] = [
+                'title'            => $key,
+                'friendly_title'   => Data::friendly_name($key),
+                'grouped_channels' => static::to_split(collect($categ_channels_out), $to_split),
+            ];
         }
-        return $categories;
+        return $categories_out;
     }
 
     /**
@@ -77,7 +86,7 @@ class ChannelCard
      * @param int $to_split
      * @return CollectionSupport
      */
-    private static function to_split(CollectionSupport $channels, int $to_split): CollectionSupport
+    public static function to_split(CollectionSupport $channels, int $to_split): CollectionSupport
     {
         if ( $to_split ) {
             return $channels->split($to_split);
@@ -90,17 +99,22 @@ class ChannelCard
      *
      * @param Peer|array $channel
      * @return array|string[]
+     * @throws Exception
      */
     public static function prepare_channel(Peer|array &$channel): array
     {
+        // TODO cast to array Peer models
         if ( is_a($channel, Peer::class) ) {
             $channel = $channel->toArray();
         }
+        unset($channel['_id']);
+
         $channel['subscribers'] = number_format($channel['subscribers'], thousands_separator: ' ');
-        $channel['img'] = ChannelCard::ava_url_path($channel['alias'] );
+        $channel['img'] = self::ava_url_path($channel['alias'] );
+        $channel['url'] = self::channel_url($channel['alias'] );
 
         if ( !empty( $channel['last_post_date'] )) {
-            $channel['last_post_date'] = self::post_since_str($channel['last_post_date']);
+            $channel['last_post_date'] = Data::post_since_str($channel['last_post_date']);
         }
         if ( !empty( $channel['category'] )) {
             $channel['friendly_category'] = Data::friendly_name($channel['category']);
@@ -133,58 +147,4 @@ class ChannelCard
             throw new Exception('Параметр функции д.б. один из двух - "local" или "hyper".');
         }
     }
-
-    /**
-     *How much time ago the last post was published.
-     *
-     * @param $last_post_date
-     * @return string
-     */
-    public static function post_since_str($last_post_date): string
-    {
-        $time_since_post = date_diff(
-            date_create(), # ->sub(new \DateInterval('P60DT16H30M')),
-            date_create($last_post_date)
-        );
-        $non_empty_count = 0;
-        foreach (static::$time_arr_keys as $time_arr_key => $time_description) {
-            $time_field_value = $time_since_post->$time_arr_key;
-
-            if ($time_field_value == 0) {
-                if ($non_empty_count == 1) {
-                    break;     # if second empty after first non-empty
-                } else {
-                    continue;  # skip leading zeros (empty)
-                }
-            }
-            $ago_str = self::prettify_ago_str($time_field_value . ' ' . $time_description);
-
-            $non_empty_count++;
-            if ($non_empty_count == 2 or $time_field_value > 1) {
-                break;   # stop before excessive information
-            }
-        }
-        return $ago_str;
-    }
-
-    /**
-     *Make simpler when pair of data.
-     *
-     * @param string $ago_str
-     * @return string
-     */
-    private static function prettify_ago_str(string $ago_str): string
-    {
-        if (substr_count($ago_str, '.') == 2) {
-            $tmp = explode(
-                '.',
-                str_replace(' ', '', $ago_str),
-                2
-            );
-            $tmp[1] = str_replace(['мес', 'дн', 'мин', 'сек'], ['м', 'д', 'м', 'с'], $tmp[1]);
-            $ago_str = implode('. ', $tmp);
-        }
-        return $ago_str;
-    }
-
 }
