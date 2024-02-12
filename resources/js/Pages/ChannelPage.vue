@@ -60,12 +60,12 @@ export default {
                         <div class="d-none d-sm-block d-lg-none mt-2 mb-n2">
                             <hr class="mt-3 mb-2">
                             <div>
-                                <b>Гео и язык канала:</b>
+                                <b>Гео и язык канала: </b>
                                 {{ channel['region'] ?? 'Россия' }},
                                 {{ channel['language'] ?? 'Русский' }}
                             </div>
                             <div>
-                                <b>Категория:</b>
+                                <b>Категория: </b>
                                 <a :href="'/categ/'+ channel['category'] "> {{ channel['friendly_category'] }} </a>
                             </div>
                         </div>

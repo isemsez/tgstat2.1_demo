@@ -31,34 +31,10 @@ class OneChannel extends Controller
         $is_public = str_starts_with($channel['alias'], '@');
         $channel['btn_text'] = $is_public ? $channel['alias'] : 'приватный канал';
         $channel['btn_hyperlink'] = ChannelCard::channel_url($channel['alias'], 'hyper');
+        $channel['region'] = !empty($channel['region']) ? $channel['region'] : null;
+        $channel['language'] = !empty($channel['language']) ? $channel['language'] : null;
 
         return inertia('ChannelPage', ['channel' => $channel]);
-    }
-
-    /**
-     * Returns page to search a channel. Or responds to search query.
-     *
-     * @return View
-     */
-    public function search_page(): View
-    {
-        if ( 'GET' == request()->method() ) {
-            return view('pages.search');  # just initial page
-        }
-
-        # if 'POST' – search query
-        $request = resolve(SearchRequest::class);
-        $model = resolve(Peer::class);
-
-        $channels = $model->search($request->validated(), how_many: 30);
-
-        foreach ($channels as $channel) {
-            $channel['img'] = ChannelCard::ava_url_path($channel['alias']);
-            $channel['subscribers'] = number_format($channel['subscribers'], thousands_separator: ' ');
-            $channel['last_post_date'] = ChannelCard::post_since_str($channel['last_post_date']);
-        }
-
-        return view('pages.search', ['channels' => $channels]);
     }
 
     /**
@@ -66,31 +42,15 @@ class OneChannel extends Controller
      *
      * @throws Exception
      */
-    public function add_channel()
+    public function add_channel_page()
     {
         $main_header = 'Добавить канал';
+        $countries = Data::associative('countries');
+        $languages = Data::associative('languages');
+        $categories = Data::associative('categories');
 
-        if ( 'GET' == request()->method() ) {  # just initial page
-            $countries = Data::associative('countries');
-            $languages = Data::associative('languages');
-            $categories = Data::associative('categories');
-
-            return view('pages.add_channel', compact(
-                'main_header','countries', 'languages', 'categories'
-            ));
-        }
-        # if 'POST' – add channel query
-        $model = resolve(Peer::class);
-        $prepared_data = resolve(AddChannelRequest::class)->prepared_data;
-
-        try {
-            $model->add_channel($prepared_data);
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
-        }
-
-        return view('pages.add_channel', compact(
-            'main_header',
+        return inertia('AddChannel', compact(
+            'main_header','countries', 'languages', 'categories'
         ));
     }
 

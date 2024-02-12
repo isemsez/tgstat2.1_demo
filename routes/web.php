@@ -25,9 +25,9 @@ Route::get('/regions/{region}', [CatalogController::class, 'one_region_page']);
 
 Route::get('/channel/{id}', [OneChannel::class, 'channel_page']);
 
-Route::get('/search', [CatalogController::class, 'search_page']);
+Route::get('/add/channel', [OneChannel::class, 'add_channel_page']);
 
-Route::get('/add/channel', [OneChannel::class, 'add_channel']);
+Route::get('/search', [CatalogController::class, 'search_page']);
 
 Route::get('/ratings/channels', [CatalogController::class, 'ratings_page']);
 Route::get('/ratings/channels/{category}', [CatalogController::class, 'ratings_page']);

@@ -70,7 +70,9 @@ class Data
      */
     public static function friendly_name(string $str_in): string
     {
-        if ( !$str_in )     { throw new ErrorException("На входе пустой параметр – \$str_in: $str_in."); }
+        if (!$str_in) {
+            throw new ErrorException("На входе пустой параметр – \$str_in: $str_in.");
+        }
 
         $slugs = [];
         foreach (self::SLUGS as $arr) {

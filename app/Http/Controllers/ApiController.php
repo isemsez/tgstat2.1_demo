@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\DropdownSourceElementException;
+use App\Http\Requests\AddChannelRequest;
 use App\Http\Requests\SearchRequest;
 use App\Models\Peer;
 use App\Services\Data;
@@ -47,7 +49,9 @@ class ApiController extends Controller
      */
     public function search_page(Peer $model): JsonResponse
     {
-        if ('dropdownInitial' == request()->post('sourceElement')) {
+        $page_source_element = request()->post('sourceElement');
+
+        if ('dropdownInitial' == $page_source_element) {
             $db_dropdown = $model->categories_dropdown(null);
             $dropdown_data = PrepareData::dropdown_categories($db_dropdown);
             PrepareData::sort_by_column($dropdown_data, 'text');
@@ -55,7 +59,7 @@ class ApiController extends Controller
             return response()->json(['status'=>'ok','data'=>$dropdown_data ]);
         }
 
-        if ( 'searchQuery' == request()->post('sourceElement') ) {
+        if ( 'searchQuery' == $page_source_element ) {
             $request = resolve(SearchRequest::class);
             [$db_channels, $total_count] = $model->search($request->validated(), how_many: Data::AMOUNT_ON_SEARCH_PAGE);
             $channels = PrepareData::channels_container($db_channels);
@@ -65,16 +69,26 @@ class ApiController extends Controller
             ]]);
         }
 
-/*
+        throw new DropdownSourceElementException("Wrong page_source_element: '$page_source_element'.");
+    }
 
 
-        foreach ($channels as $channel) {
-            $channel['img'] = ChannelCard::ava_url_path($channel['alias']);
-            $channel['subscribers'] = number_format($channel['subscribers'], thousands_separator: ' ');
-            $channel['last_post_date'] = ChannelCard::post_since_str($channel['last_post_date']);
+    /**
+     * Adds new channel..
+     *
+     * @throws Exception
+     */
+    public function add_channel(Peer $model, AddChannelRequest $request)
+    {
+        $main_header = 'Добавить канал';
+
+        try {
+            $model->add_channel($request->prepared_data);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
         }
-*/
-//        return view('pages.search', ['channels' => $channels]);
+
+        return response()->json(['status'=>'ok', 'data'=>compact('main_header')]);
     }
 
 }

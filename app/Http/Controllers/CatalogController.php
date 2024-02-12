@@ -111,10 +111,11 @@ class CatalogController extends Controller
         $channels = PrepareData::region_channels($db_channels);
 
         return inertia('RegionPage', [
-            'region'              => ['slug'           => $region,
-                                      'friendly_title' => Data::friendly_name($region),
-                                      'channels'       => $channels,],
-        ]);
+            'region' =>
+                ['slug'           => $region,
+                 'friendly_title' => Data::friendly_name($region),
+                 'channels'       => $channels,
+        ]]);
     }
 
     /**
@@ -149,9 +150,10 @@ class CatalogController extends Controller
 
         $channels = ChannelCard::prepare_for_card($channels);
 
-        return inertia('pages.ratings', [
+        return inertia('RatingsPage', [
                 'main_header' => 'Рейтинг Telegram-каналов',
-                'channels'   => $channels,
+                'channels'    => $channels,
+                'categories'  => Data::associative_categories(),
             ]
         );
     }

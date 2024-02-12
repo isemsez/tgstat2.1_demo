@@ -22,7 +22,7 @@ export default {
 
     <div class="card border m-0">
         <div class="slick-list draggable">
-            <div v-for="category_column in categories" class="col-12 col-sm-6 col-md-3 slick-slider-item"
+            <div v-for="category_column in categories" class="col-12 col-sm-6 col-md-4 col-lg-3 slick-slider-item"
                  style="width: 100%; display: inline-block;">
                 <div class="p-2 py-3">
                     <div class="row align-items-center">

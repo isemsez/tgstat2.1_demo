@@ -18,19 +18,19 @@ export default {
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block active" href="//ttg/">
+                        <a class="dropdown-item d-block active" href=#>
                             <img src="/images/flags/russia.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Россия                    </a>
                     </div>
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//uk.ttg/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/ukraine.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Украина                    </a>
                     </div>
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//by.ttg/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/belarus.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Беларусь                    </a>
                     </div>
 
@@ -42,44 +42,44 @@ export default {
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//kaz.ttg/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/kazakhstan.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Казахстан                    </a>
                     </div>
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//kg.ttg/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/kyrgyzstan.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Киргизия                    </a>
                     </div>
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//ir.ttg/ru/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/iran.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Иран                    </a>
                     </div>
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//cn.ttg/ru/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/china.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Китай                    </a>
                     </div>
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//in.ttg/ru/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/india.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Индия                    </a>
                     </div>
 
 
                     <div class="col-6">
-                        <a class="dropdown-item d-block " href="//et.ttg/ru/">
+                        <a class="dropdown-item d-block " href=#>
                             <img src="/images/flags/ethiopia.jpg" alt="flag" class="mr-1" height="12" style="margin-top: -2px;">                        Эфиопия                    </a>
                     </div>
                 </div>
 
                 <div class="dropdown-divider"></div>
 
-                <a class="dropdown-item" href="//ttg/ru/">
+                <a class="dropdown-item" href=#>
                     <i class="uil-globe" style="height:12px;"></i>            Global
                 </a>
             </div>

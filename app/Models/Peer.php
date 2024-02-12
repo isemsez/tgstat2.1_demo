@@ -9,6 +9,8 @@ use MongoDB\Laravel\Eloquent\Model;
 
 class Peer extends Model
 {
+    protected $collection = 'peers';
+
     protected $guarded = ['*'];
 
 
@@ -107,7 +109,7 @@ class Peer extends Model
     }
 
     /**
-     * Return the specified channel data.
+     * Return the channel data.
      *
      * @param string $channel_id
      * @return Peer[]
@@ -150,7 +152,6 @@ class Peer extends Model
     {
         $category = request()->post('categoryId');
         $page_offset = request()->post('page');
-        $peer = request()->post('peer');
         $sort_by = request()->post('sort', 'subscribers');
 
         $query = $this->query()->where('region', $region );
@@ -233,11 +234,11 @@ class Peer extends Model
                 ['$limit' => $how_many],
             ]);
         };
-        $tmp = $this->raw($query)[0];
-        $total_channels_found = $tmp['total'][0]['count'];
+        $db_data = $this->raw($query)[0];
+        $total_channels_found = $db_data['total'][0]['count'];
 
         return [
-            PrepareData::convertMongoResultToArray($tmp['docs']),
+            PrepareData::mongoResultToArray($db_data['docs']),
             $total_channels_found
         ];
     }

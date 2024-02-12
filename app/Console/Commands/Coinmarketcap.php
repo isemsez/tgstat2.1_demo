@@ -27,8 +27,7 @@ class Coinmarketcap extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
+     * @return string
      * @throws Exception
      */
     public function handle()
@@ -74,11 +73,11 @@ class Coinmarketcap extends Command
 //            $about_ru = $this->gpt_translate_ru($modified_en);
 //            $about_de = $this->gpt_translate_de($modified_en);
             $out_json_str = json_encode([
-                'name' => $new_coin['name'],
-                'symbol' => $new_coin['symbol'],
-                'slug' => $new_coin['slug'],
+                'name'    => $new_coin['name'],
+                'symbol'  => $new_coin['symbol'],
+                'slug'    => $new_coin['slug'],
                 'ava_url' => $img_link,
-                'about' => '',
+                'about'   => '',
 //                'about' => [
 //                    'en' => $modified_en,
 //                    'ru' => $about_ru,
@@ -103,7 +102,8 @@ class Coinmarketcap extends Command
         }
         Log::debug('$downloaded coins ' . count($downloaded_coins));
 
-        $raw_content = file_get_contents(storage_path('repository/json_coins_coinmarketcap.txt'));
+        $raw_content = file_get_contents(
+            storage_path('repository/json_coins_coinmarketcap.txt'));
         $json_lines = explode("\n", trim($raw_content));
         $coins_prev = [];
         foreach ($json_lines as $json_line) {
@@ -114,7 +114,7 @@ class Coinmarketcap extends Command
 
         $extra_coins = array_diff($downloaded_coins, $coins_prev);
         Log::debug(print_r($extra_coins, true));
-        if (empty($extra_coins)) {
+        if ( empty($extra_coins) ) {
             exit("No new coins.\n");
         }
         $this->info("Had " . count($coins_prev) . " coins, now got " . count($downloaded_coins) . ', $extra_coins ' . count($extra_coins));

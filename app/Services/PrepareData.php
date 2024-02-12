@@ -104,7 +104,7 @@ class PrepareData
      * @param $result
      * @return array|string
      */
-    public static function convertMongoResultToArray($result): array|string
+    public static function mongoResultToArray($result): array|string
     {
         if (is_object($result)) {
             if ($result instanceof BSONDocument) {
@@ -115,7 +115,7 @@ class PrepareData
 
             if (is_array($result)) {
                 foreach ($result as $key => $value) {
-                    $result[$key] = self::convertMongoResultToArray($value);
+                    $result[$key] = self::mongoResultToArray($value);
                 }
             }
         }

@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/regions/{region}', [ApiController::class, 'one_region_page']);
 
-Route::post('/add/channel', [OneChannel::class, 'add_channel']);
+Route::post('/add/channel', [ApiController::class, 'add_channel']);
 
 Route::post('/search', [ApiController::class, 'search_page']);
 
